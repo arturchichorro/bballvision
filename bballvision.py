@@ -1,14 +1,7 @@
-            # # Attempt: when ball is moving towards the rim from above
-            # if prev_ball_y < rim_top_y and current_ball_y > rim_top_y:
-            #     totalAttempts += 1
-            #     print(f"Shot Attempt: {totalAttempts} attempts")
-
-            # Made shot: when ball crosses rim's bottom boundary
-
-
 from ultralytics import YOLO
 import cv2
 import math
+import cvzone
 import numpy as np
 from sort import *
 
@@ -21,7 +14,7 @@ model = YOLO("best.pt")  # Your trained model
 # "made" class doesn't work very well
 classNames = ["ball", "made", "person", "rim", "shoot"]
 
-totalAttempts = 0
+totalAttempts = []
 totalMadeShots = 0
 
 # Tracking of "Shoot" position
@@ -64,7 +57,6 @@ while True:
 
             # Detecting the "shoot" action
             if currentClass == "shoot":
-                totalAttempts += 1
 
                 currentArray = np.array([x1, y1, x2, y2, conf])
                 detections = np.vstack((detections, currentArray))
@@ -75,10 +67,21 @@ while True:
 
     resultsTracker = tracker.update(detections)
 
-    
+
+    for tracked in resultsTracker:
+        x1, y1, x2, y2, id = tracked
+        x1, y1, x2, y2, id = int(x1), int(y1), int(x2), int(y2), int(id)
+        w, h = x2-x1, y2-y1
+
+        cvzone.cornerRect(img, (x1, y1, w, h), l=10, rt=2, colorR=(255, 0, 255))
+        cvzone.putTextRect(img, f'{id}', (max(0, x1), max(35, y1)), scale=2, thickness=3, offset=10) 
+
+        # Counts max once per shooting stance. Need to test for pump fakes and stuff like that
+        if totalAttempts.count(id) == 0:
+            totalAttempts.append(id)
 
     # Display attempts and made shots count on the image
-    cv2.putText(img, f'Attempts: {totalAttempts}', (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
+    cv2.putText(img, f'Attempts: {str(len(totalAttempts))}', (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
     cv2.putText(img, f'Made Shots: {totalMadeShots}', (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
 
     cv2.imshow("Image", img)
