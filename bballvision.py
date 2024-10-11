@@ -3,7 +3,7 @@ import cv2
 import math
 import numpy as np
 from collections import deque
-from helper import is_increasing_distances, is_ball_below_rim, is_ball_above_rim, is_made_shot
+from helper import is_increasing_distances, is_ball_below_rim, is_ball_above_rim, is_made_shot, write_text_with_background
 
 # Load Video
 video_path = 'input_vids/vid29.mp4'
@@ -64,7 +64,6 @@ while True:
             current_class = classnames[cls]
 
             cx, cy = x1+w // 2, y1+h // 2
-            cv2.circle(img, (cx, cy), 5, (255, 0, 255), cv2.FILLED)
 
             # Detecting the "shoot" action
             if current_class == "shoot":
@@ -73,14 +72,28 @@ while True:
             # Check if ball is detected
             if current_class == "ball" and conf>0.4:
                 ball_position.append([cx, cy, frame])
+                
+                # Draw bounding boxes and classnames
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 200), 2)
+                write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), (0, 0, 50), 1)
+
+                # Draw the center point
+                cv2.circle(img, (cx, cy), 5, (0, 0, 200), cv2.FILLED)
 
             # Check if rim is detected
             if current_class == "rim" and conf>0.4:
                 rim_position.append([x1, y1, x2, y2, frame])
 
-            # Draw bounding boxes for debugging
-            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
+                # Draw bounding boxes and classnames
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), (0, 50, 0), 1)
+
+            if current_class == "person" and conf>0.4:
+                
+                # Draw bounding boxes and classnames
+                cv2.rectangle(img, (x1, y1), (x2, y2), (200, 0, 0), 2)
+                write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (200, 200, 200), (100, 0, 0), 1)
+
 
     # Checks if distance from shoot position and ball keeps increasing after shot attempt
     # Checks if last time "shoot" was detected was five frames ago
@@ -99,10 +112,9 @@ while True:
     # lower_rim_bound < ball < higher_rim_bound
     if is_ball_above_rim(ball_position[-1], rim_position[-1]):
         ball_above_rim = ball_position[-1]
-
-    # Display attempts and made shots count on the image
-    cv2.putText(img, f'Attempts: {str(total_attempts)}', (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
-    cv2.putText(img, f'Made Shots: {total_made}', (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
+    
+    write_text_with_background(img, f'Attempts: {str(total_attempts)}', (50, 150), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), (255, 255, 255), 2)
+    write_text_with_background(img, f'Made Shots: {total_made}', (50, 200), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), (255, 255, 255), 2)
 
     frame += 1
 
@@ -110,6 +122,7 @@ while True:
     if overlay is None:
         overlay = np.zeros_like(img, dtype=np.uint8)
 
+    # Draws a path for the balls
     if frame % 5 == 0:
         # Clear the overlay (reset to transparent)
         overlay = np.zeros_like(img, dtype=np.uint8)

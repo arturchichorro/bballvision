@@ -1,4 +1,5 @@
 import math
+import cv2
 
 def distance(p1, p2):
     """
@@ -58,3 +59,9 @@ def is_made_shot(above_rim, below_rim, rim):
     x = (y1 - b) / m
 
     return x1 < x and x < x2
+
+def write_text_with_background(img, text, location, font_face, font_scale, text_color, background_color, thickness):
+    
+    (tw, th), baseline = cv2.getTextSize(text, font_face, font_scale, thickness)
+    cv2.rectangle(img, (location[0], location[1] - th - baseline), (location[0] + tw, location[1] + baseline), background_color, -1)
+    cv2.putText(img, text, location, font_face, font_scale, text_color, thickness)
