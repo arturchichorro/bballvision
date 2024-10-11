@@ -20,7 +20,6 @@ def is_increasing_distances(point, points_array):
     Returns:
     bool: True if the distances are strictly increasing, False otherwise.
     """
-    x, y = point
 
     # Calculate distances between (x, y) and all points in the array
     distances = [distance(point, (x_i, y_i)) for (x_i, y_i) in points_array]
@@ -86,15 +85,14 @@ shoot_position = deque(maxlen=30)
 # In the format [x1, y1, x2, y2, frame]
 rim_position = deque(maxlen=30)
 
+ball_above_rim = None
+
 overlay = None
 
 while True:
     success, img = cap.read()
     if not success:
         break
-
-    if overlay is None:
-        overlay = np.zeros_like(img, dtype=np.uint8)
 
     results = model(img, stream=True)
     detections = np.empty((0,5))
@@ -148,18 +146,16 @@ while True:
         if is_increasing_distances((shoot_position[-1][0], shoot_position[-1][1]), last_ball_pos):
             total_attempts += 1
 
-    # Add logic to check if made shot
-    
+    # This means that ball was above rim (or between lower and higher rim bound) in last frame and is now below rim
+    if ball_above_rim and is_ball_below_rim(ball_position[-1], rim_position[-1]):
+        if is_made_shot(ball_above_rim, ball_position[-1], rim_position[-1]):
+            total_made += 1
+        ball_above_rim = None
 
-    # Adds circles on ball position every 5 frames
-    if frame % 5 == 0:
-        # Clear the overlay (reset to transparent)
-        overlay = np.zeros_like(img, dtype=np.uint8)
-        
-        for pos in ball_position:
-            cx, cy, pos_frame = pos
-            if pos_frame % 5 == 0:
-                cv2.circle(overlay, (cx, cy), 5, (0, 0, 255), cv2.FILLED)
+    # By doing it through an if statement instead of just assignment, the variable ball_above_rim remains true when
+    # lower_rim_bound < ball < higher_rim_bound
+    if is_ball_above_rim(ball_position[-1], rim_position[-1]):
+        ball_above_rim = ball_position[-1]
 
     # Display attempts and made shots count on the image
     cv2.putText(img, f'Attempts: {str(total_attempts)}', (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
@@ -170,11 +166,27 @@ while True:
 
     frame += 1
 
+    # Adds circles on ball position every 5 frames
+    if overlay is None:
+        overlay = np.zeros_like(img, dtype=np.uint8)
+
+    if frame % 5 == 0:
+        # Clear the overlay (reset to transparent)
+        overlay = np.zeros_like(img, dtype=np.uint8)
+        
+        for pos in ball_position:
+            cx, cy, pos_frame = pos
+            if pos_frame % 5 == 0:
+                cv2.circle(overlay, (cx, cy), 5, (0, 0, 255), cv2.FILLED)
+
     cv2.imshow("Image", blended_img)
 
-    cv2.waitKey(0)
-    # if cv2.waitKey(1) & 0xFF == ord('q'):
-    #     break
+    # To watch video frame by frame
+    # cv2.waitKey(0)
+
+    # To watch video continuosly
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 cap.release()
 cv2.destroyAllWindows()
