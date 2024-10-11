@@ -74,18 +74,9 @@ while True:
             if current_class == "ball" and conf>0.4:
                 ball_position.append([cx, cy, frame])
 
-                print(f"Ball position: x1: {x1} x2: {x2} y1: {y1} y2: {y2}")
-                print(cx, cy)
-
             # Check if rim is detected
             if current_class == "rim" and conf>0.4:
                 rim_position.append([x1, y1, x2, y2, frame])
-
-                print(f"Rim position: x1: {x1} x2: {x2} y1: {y1} y2: {y2}")
-                print(cx, cy)
-                cv2.circle(img, (x1, y1), 5, (255, 0, 255), cv2.FILLED) # Pink
-                cv2.circle(img, (x1, y2), 5, (0, 255, 0), cv2.FILLED) # Some other 
-                cv2.circle(img, (5, 5), 5, (255, 0, 0), cv2.FILLED) # Some other 
 
             # Draw bounding boxes for debugging
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
