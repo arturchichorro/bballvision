@@ -1,23 +1,21 @@
 from ultralytics import YOLO
 import cv2
 import math
-import cvzone
 import numpy as np
 from collections import deque
 
-
-
 def distance(p1, p2):
+    """
+    Args:
+    p1 (x,y) and p2 (x,y)
+    """
     return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
 def is_increasing_distances(point, points_array):
     """
-    Check if the distances between the given point and the points in the array
-    are strictly increasing.
-
     Args:
-    point (tuple): A tuple (x, y) representing the given point.
-    points_array (list): A list of tuples [(x_1, y_1), (x_2, y_2), ...].
+    point (tuple): (x,y)
+    points_array (list): List of tuples [(x_1, y_1), (x_2, y_2), ...].
 
     Returns:
     bool: True if the distances are strictly increasing, False otherwise.
@@ -31,10 +29,40 @@ def is_increasing_distances(point, points_array):
     for i in range(1, len(distances)):
         if distances[i] <= distances[i - 1]:
             return False
-
     return True
 
+def is_ball_above_rim(ball, rim):
+    """
+    Args: 
+    ball (cx, cy, frame)
+    rim (x1, y1, x2, y2, frame)
+    """
+    return ball[1] < rim[1]
 
+
+def is_ball_below_rim(ball, rim):
+    """
+    Args: 
+    ball (cx, cy, frame)
+    rim (x1, y1, x2, y2, frame)
+    """
+    return ball[1] > rim[3]
+
+def is_made_shot(above_rim, below_rim, rim):
+    """
+    Args:
+    above_rim (cx, cy, frame)
+    below_rim (cx, cy, frame)
+    rim (x1, y1, x2, y2, frame)
+    """
+    x1, y1, x2 = rim[0], rim[1], rim[2]
+    cx1, cy1, cx2, cy2 = above_rim[0], above_rim[1], below_rim[0], below_rim[1]
+
+    m = (cy2-cy1)/(cx2-cx1)
+    b = cy1 - m*cx1
+    x = (y1 - b) / m
+
+    return x1 < x and x < x2
 
 # Load Video
 video_path = 'input_vids/vid29.mp4'
@@ -53,9 +81,10 @@ total_made = 0
 frame = 0
 
 # In the format [x_center, y_center, frame]
-rim_position = deque(maxlen=30)
 ball_position = deque(maxlen=30)
 shoot_position = deque(maxlen=30)
+# In the format [x1, y1, x2, y2, frame]
+rim_position = deque(maxlen=30)
 
 overlay = None
 
@@ -95,20 +124,34 @@ while True:
             if current_class == "ball" and conf>0.4:
                 ball_position.append([cx, cy, frame])
 
+                print(f"Ball position: x1: {x1} x2: {x2} y1: {y1} y2: {y2}")
+                print(cx, cy)
+
             # Check if rim is detected
             if current_class == "rim" and conf>0.4:
-                rim_position.append([cx, cy, frame])
+                rim_position.append([x1, y1, x2, y2, frame])
+
+                print(f"Rim position: x1: {x1} x2: {x2} y1: {y1} y2: {y2}")
+                print(cx, cy)
+                cv2.circle(img, (x1, y1), 5, (255, 0, 255), cv2.FILLED) # Pink
+                cv2.circle(img, (x1, y2), 5, (0, 255, 0), cv2.FILLED) # Some other 
+                cv2.circle(img, (5, 5), 5, (255, 0, 0), cv2.FILLED) # Some other 
 
             # Draw bounding boxes for debugging
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
 
+    # Checks if distance from shoot position and ball keeps increasing after shot attempt
+    # Checks if last time "shoot" was detected was five frames ago
     if shoot_position and shoot_position[-1][2] == frame - 5:
         last_ball_pos = [(cx, cy) for cx, cy, frame in list(ball_position)[-5:]]
         if is_increasing_distances((shoot_position[-1][0], shoot_position[-1][1]), last_ball_pos):
             total_attempts += 1
 
+    # Add logic to check if made shot
+    
 
+    # Adds circles on ball position every 5 frames
     if frame % 5 == 0:
         # Clear the overlay (reset to transparent)
         overlay = np.zeros_like(img, dtype=np.uint8)
@@ -129,8 +172,9 @@ while True:
 
     cv2.imshow("Image", blended_img)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    cv2.waitKey(0)
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+    #     break
 
 cap.release()
 cv2.destroyAllWindows()
