@@ -133,6 +133,9 @@ while True:
 
     cv2.imshow("Image", blended_img)
 
+    # Write the frame to the video file
+    out.write(blended_img)
+
     # To watch video frame by frame
     # cv2.waitKey(0)
 
@@ -141,4 +144,5 @@ while True:
         break
 
 cap.release()
+out.release()
 cv2.destroyAllWindows()
