@@ -9,6 +9,16 @@ from helper import is_increasing_distances, is_ball_below_rim, is_ball_above_rim
 video_path = 'input_vids/vid29.mp4'
 cap = cv2.VideoCapture(video_path)
 
+# Get the width, height, and FPS of the input video
+frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+
+# Define the codec and create VideoWriter object to save the video
+output_path = 'output_vids/output.mp4'
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4 files
+out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
+
 model = YOLO("bballvision.pt")
 
 # "made" class doesn't work very well
