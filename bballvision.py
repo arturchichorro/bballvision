@@ -3,7 +3,7 @@ import cv2
 import math
 import numpy as np
 from collections import deque
-from helper import is_increasing_distances, is_ball_below_rim, is_ball_above_rim, is_made_shot, write_text_with_background
+from helper import is_increasing_distances, is_ball_below_rim, is_ball_above_rim, is_made_shot, write_text_with_background, get_available_filename
 
 # Load Video
 video_path = 'input_vids/vid29.mp4'
@@ -13,7 +13,8 @@ cap = cv2.VideoCapture(video_path)
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
-output_path = 'output_vids/output.mp4'
+
+output_path = get_available_filename('output_vids', 'output', 'mp4')
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
@@ -75,6 +76,7 @@ while True:
             # Check if rim is detected
             if current_class == "rim" and conf>0.4:
                 rim_position.append([x1, y1, x2, y2, frame])
+                print(y2)
             
             # Draw bounding boxes and classnames
             cv2.rectangle(img, (x1, y1), (x2, y2), (200, 0, 0), 2)

@@ -1,5 +1,6 @@
 import math
 import cv2
+import os
 
 def distance(p1, p2):
     """
@@ -65,3 +66,13 @@ def write_text_with_background(img, text, location, font_face, font_scale, text_
     (tw, th), baseline = cv2.getTextSize(text, font_face, font_scale, thickness)
     cv2.rectangle(img, (location[0], location[1] - th - baseline), (location[0] + tw, location[1] + baseline), background_color, -1)
     cv2.putText(img, text, location, font_face, font_scale, text_color, thickness)
+
+def get_available_filename(output_dir, base_name, extension):
+    counter = 1
+    output_path = os.path.join(output_dir, f"{base_name}.{extension}")
+    
+    while os.path.exists(output_path):
+        output_path = os.path.join(output_dir, f"{base_name}{counter}.{extension}")
+        counter += 1
+    
+    return output_path

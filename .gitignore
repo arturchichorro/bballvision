@@ -1,3 +1,6 @@
 __pycache__/
 input_vids/*
+output_vids/*
+!output_vids/
 !input_vids/
+!input_vids/vid29.mp4
