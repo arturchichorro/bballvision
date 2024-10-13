@@ -9,14 +9,12 @@ from helper import is_increasing_distances, is_ball_below_rim, is_ball_above_rim
 video_path = 'input_vids/vid29.mp4'
 cap = cv2.VideoCapture(video_path)
 
-# Get the width, height, and FPS of the input video
+# Stuff for output video
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
-
-# Define the codec and create VideoWriter object to save the video
 output_path = 'output_vids/output.mp4'
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4 files
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
 model = YOLO("bballvision.pt")
@@ -24,11 +22,9 @@ model = YOLO("bballvision.pt")
 # "made" class doesn't work very well
 classnames = ["ball", "made", "person", "rim", "shoot"]
 
-# total_attempts is an array to make sure each shooting stance is only counted once
 total_attempts = 0
 total_made = 0
 
-# Counts the frames
 frame = 0
 
 # In the format [x_center, y_center, frame]
@@ -66,16 +62,12 @@ while True:
             cx, cy = x1+w // 2, y1+h // 2
 
             # Detecting the "shoot" action
-            if current_class == "shoot":
+            if current_class == "shoot" and conf>0.4:
                 shoot_position.append([cx, cy, frame])
             
             # Check if ball is detected
             if current_class == "ball" and conf>0.4:
                 ball_position.append([cx, cy, frame])
-                
-                # Draw bounding boxes and classnames
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 200), 2)
-                write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), (0, 0, 50), 1)
 
                 # Draw the center point
                 cv2.circle(img, (cx, cy), 5, (0, 0, 200), cv2.FILLED)
@@ -83,16 +75,10 @@ while True:
             # Check if rim is detected
             if current_class == "rim" and conf>0.4:
                 rim_position.append([x1, y1, x2, y2, frame])
-
-                # Draw bounding boxes and classnames
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), (0, 50, 0), 1)
-
-            if current_class == "person" and conf>0.4:
-                
-                # Draw bounding boxes and classnames
-                cv2.rectangle(img, (x1, y1), (x2, y2), (200, 0, 0), 2)
-                write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (200, 200, 200), (100, 0, 0), 1)
+            
+            # Draw bounding boxes and classnames
+            cv2.rectangle(img, (x1, y1), (x2, y2), (200, 0, 0), 2)
+            write_text_with_background(img, f'{current_class} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (200, 200, 200), (100, 0, 0), 1)
 
 
     # Checks if distance from shoot position and ball keeps increasing after shot attempt
@@ -113,10 +99,8 @@ while True:
     if is_ball_above_rim(ball_position[-1], rim_position[-1]):
         ball_above_rim = ball_position[-1]
     
-    write_text_with_background(img, f'Attempts: {str(total_attempts)}', (50, 150), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), (255, 255, 255), 2)
-    write_text_with_background(img, f'Made Shots: {total_made}', (50, 200), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), (255, 255, 255), 2)
-
-    frame += 1
+    write_text_with_background(img, f'Attempts: {str(total_attempts)}', (50, 150), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), (0, 50, 0), 2)
+    write_text_with_background(img, f'Made Shots: {total_made}', (50, 200), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), (0, 50, 0), 2)
 
     # Adds circles on ball position every 5 frames
     if overlay is None:
@@ -132,6 +116,8 @@ while True:
             if pos_frame % 5 == 0:
                 cv2.circle(overlay, (cx, cy), 5, (0, 0, 255), cv2.FILLED)
     
+    frame += 1
+
     # Blend the overlay onto the main frame
     blended_img = cv2.addWeighted(img, 1.0, overlay, 1, 0)
 
