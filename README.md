@@ -6,8 +6,11 @@ It works best with videos of a single person shooting the ball. Future improveme
 
 Here's a preview of the results:
 
-- [Demo Video 1](output_vids/demo1.mp4)
-- [Demo Video 2](output_vids/demo2.mp4)
+[![YouTube Short](https://img.youtube.com/vi/gpBg-aCNdEk/maxresdefault.jpg)](https://www.youtube.com/shorts/gpBg-aCNdEk)
+
+### Dataset
+
+The model was custom-trained using this dataset from [Roboflow](https://universe.roboflow.com/test-datset/basketball-bs0zc).
 
 ### Prerequisites
 - Python 3.x
