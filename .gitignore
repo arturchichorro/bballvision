@@ -4,3 +4,5 @@ output_vids/*
 !input_vids/
 !input_vids/vid29.mp4
 !output_vids/
+!output_vids/demo1.mp4
+!output_vids/demo2.mp4

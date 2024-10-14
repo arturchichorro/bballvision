@@ -76,7 +76,6 @@ while True:
             # Check if rim is detected
             if current_class == "rim" and conf>0.4:
                 rim_position.append([x1, y1, x2, y2, frame])
-                print(y2)
             
             # Draw bounding boxes and classnames
             cv2.rectangle(img, (x1, y1), (x2, y2), (200, 0, 0), 2)
