@@ -5,8 +5,9 @@ This project detects basketball attempts and made shots using computer vision ba
 It works best with videos of a single person shooting the ball. Future improvements will include functionality for 1v1 games, with further development planned to extend its capabilities.
 
 Here's a preview of the results:
-
 [![YouTube Short](https://img.youtube.com/vi/gpBg-aCNdEk/maxresdefault.jpg)](https://www.youtube.com/shorts/gpBg-aCNdEk)
+
+If you want to read more about this project, I wrote a blog post about it [here](https://bolota.eu/posts/10_bballvision).
 
 ### Dataset
 
